@@ -1,0 +1,32 @@
+version: "3.9"
+services:
+  memcached:
+    container_name: memcached
+    image: docker.io/bitnami/memcached:1
+    ports:
+      - '11211:11211'
+  dsadmin:
+    container_name: dsadmin
+    image: "ghcr.io/remko/dsadmin:latest"
+    depends_on:
+      - datastore
+    ports:
+      - "8585:8080"
+    environment:
+      DATASTORE_PROJECT_ID: local
+      DATASTORE_EMULATOR_HOST: "datastore:8081"
+  datastore:
+    container_name: datastore
+    image: "gcr.io/google.com/cloudsdktool/cloud-sdk:latest"
+    volumes:
+      - datastore_data:/opt/datastore/data
+    ports:
+      - "8484:8081"
+    command: [
+      "gcloud", "--quiet", "beta", "emulators" ,"datastore", "start", 
+      "--host-port=0.0.0.0:8081", "--data-dir=/opt/datastore/data"
+    ]
+    environment:
+      CLOUDSDK_CORE_PROJECT: local
+volumes:
+  datastore_data:
